@@ -1,0 +1,12 @@
+{application, gcm_api,
+ [{description, "API for gcm_erlang"}
+ ,{vsn, "0.1.0"}
+ ,{registered, []}
+ ,{mod, {'gcm_api_app', []}}
+ ,{applications,
+   [kernel
+   ,stdlib
+   ]}
+ ,{env,[]}
+ ,{modules, []}
+ ]}.
