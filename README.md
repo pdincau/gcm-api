@@ -1,7 +1,7 @@
-prova
+gcm-api
 =====
 
-An OTP application
+API for gcm-erlang
 
 Build
 -----
