@@ -6,6 +6,8 @@
 
 -define(FIELDS, [<<"appid">>, <<"userid">>, <<"regid">>]).
 
+-record(subscription, {appid, userid, regid}).
+
 init(_Transport, Req, []) ->
     {ok, Req, undefined}.
 
@@ -32,9 +34,8 @@ handle_request(_, _, Req) ->
     cowboy_req:reply(405, Req).
 
 reply(PostVals, Req) ->
-    _AppId = proplists:get_value(<<"appid">>, PostVals),
-    _UserId = proplists:get_value(<<"userid">>, PostVals),
-    _RegId = proplists:get_value(<<"regid">>, PostVals),
+    Subscription = subscription_from(PostVals),
+    {ok, subscribed} = subscriptions:add(Subscription),
     cowboy_req:reply(201, [], <<"">>, Req).
 
 terminate(_Reason, _Req, _State) ->
@@ -53,3 +54,9 @@ validate_presence([Key|Keys], Fields, Errors) ->
         _ ->
             validate_presence(Keys, Fields, Errors)
     end.
+
+subscription_from(PostVals) ->
+    AppId = proplists:get_value(<<"appid">>, PostVals),
+    UserId = proplists:get_value(<<"userid">>, PostVals),
+    RegId = proplists:get_value(<<"regid">>, PostVals),
+    #subscription{appid=AppId, userid=UserId, regid=RegId}.
