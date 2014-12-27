@@ -6,7 +6,7 @@
 
 -define(FIELDS, [<<"appid">>, <<"userid">>, <<"regid">>]).
 
--record(subscription, {appid, userid, regid}).
+-include("utils.hrl").
 
 init(_Transport, Req, []) ->
     {ok, Req, undefined}.

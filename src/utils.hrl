@@ -1,0 +1,1 @@
+-record(subscription, {appid, userid, regid}).
