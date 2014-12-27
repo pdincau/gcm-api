@@ -4,7 +4,7 @@
 -export([handle/2]).
 -export([terminate/3]).
 
--define(FIELDS, [<<"regid">>, <<"userid">>]).
+-define(FIELDS, [<<"appid">>, <<"userid">>, <<"regid">>]).
 
 init(_Transport, Req, []) ->
     {ok, Req, undefined}.
@@ -32,9 +32,10 @@ handle_request(_, _, Req) ->
     cowboy_req:reply(405, Req).
 
 reply(PostVals, Req) ->
+    _AppId = proplists:get_value(<<"appid">>, PostVals),
     _UserId = proplists:get_value(<<"userid">>, PostVals),
     _RegId = proplists:get_value(<<"regid">>, PostVals),
-    cowboy_req:reply(201, [], UserId, Req).
+    cowboy_req:reply(201, [], <<"">>, Req).
 
 terminate(_Reason, _Req, _State) ->
     ok.
