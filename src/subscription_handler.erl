@@ -36,6 +36,7 @@ handle_request(_, _, Req) ->
 reply(PostVals, Req) ->
     Subscription = subscription_from(PostVals),
     {ok, subscribed} = subscriptions:add(Subscription),
+    spawn(fun() -> subscription_notifier:process(Subscription) end),
     cowboy_req:reply(201, [], <<"">>, Req).
 
 terminate(_Reason, _Req, _State) ->
