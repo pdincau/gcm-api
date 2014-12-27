@@ -10,8 +10,9 @@
 -export([add/1]).
 
 -define(SERVER, ?MODULE).
+-define(TABLE, ?MODULE).
 
--record(state, {subscriptions}).
+-record(state, {}).
 
 -include("utils.hrl").
 
@@ -23,11 +24,12 @@ start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
-    {ok, #state{subscriptions=[]}}.
+    ets:new(?TABLE, [bag, named_table]),
+    {ok, #state{}}.
 
-handle_call({add, Subscription}, _From, #state{subscriptions=Subscriptions} = State) ->
-    NewState = State#state{subscriptions=[Subscription|Subscriptions]},
-    {reply, {ok, subscribed}, NewState};
+handle_call({add, Subscription}, _From, State) ->
+    ets:insert(?TABLE, Subscription),
+    {reply, {ok, subscribed}, State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
