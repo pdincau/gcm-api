@@ -12,10 +12,13 @@ process(#subscription{appid=_AppId, userid=UserId, regid=_RegId} = _Subscription
         {ok, {{_, 200, _}, _Headers, _Body}} ->
             error_logger:info_msg("Subscription successfully notified~n", []);
         {ok, {{_, _, _}, _, _}} ->
+            %%TODO: retry after a while for n-times
 	    error_logger:error_msg("Error in request.~n", []);
         {error, Reason} ->
+            %%TODO: retry after a while for n-times
 	    error_logger:error_msg("Error in request. Reason was: ~p~n", [Reason]);
         OtherError ->
+            %%TODO: retry after a while for n-times
 	    error_logger:error_msg("Error in request. Reason was: ~p~n", [OtherError])
     catch
         Exception ->
