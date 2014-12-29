@@ -20,4 +20,5 @@ start_cowboy() ->
     {ok, _} = cowboy:start_http(http, 100, TransOpts, ProtoOpts).
 
 routes() ->
-    [{'_', [{"/subscriptions", subscription_handler, []}]}].
+    [{'_', [{"/subscriptions", subscription_handler, []}
+           ,{"/notifications", notification_handler, []}]}].
