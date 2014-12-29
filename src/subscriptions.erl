@@ -7,7 +7,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([add/1]).
+-export([add/1, find/1]).
 
 -define(SERVER, ?MODULE).
 -define(TABLE, ?MODULE).
@@ -20,11 +20,19 @@ add(#subscription{appid=_AppId, userid=_UserId, regid=_RegId} = Subscription) ->
     error_logger:info_msg("Adding subscription~n", []),
     gen_server:call(?SERVER, {add, Subscription}).
 
+find(UserId) ->
+    case ets:lookup(subscriptions, UserId) of
+        [Subscription] ->
+            {ok, Subscription};
+        [] ->
+            {error, no_subscription}
+    end.
+
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
-    ets:new(?TABLE, [bag, named_table]),
+    ets:new(?TABLE, [set, {keypos, #subscription.userid}, named_table]),
     {ok, #state{}}.
 
 handle_call({add, Subscription}, _From, State) ->
