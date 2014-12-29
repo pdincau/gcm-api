@@ -21,4 +21,4 @@ start_cowboy() ->
 
 routes() ->
     [{'_', [{"/subscriptions", subscription_handler, []}
-           ,{"/notifications", notification_handler, []}]}].
+           ,{"/:app_name/notifications", notification_handler, []}]}].
