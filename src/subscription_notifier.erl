@@ -13,25 +13,30 @@ process(Subscription) ->
 process(_, _, ?ATTEMPTS_LIMIT) ->
     ok;
 
-process(Subscription, RetryAfter, Attempts) ->
-    #subscription{appid=_AppId, userid=UserId, regid=_RegId} = Subscription,
+process(#subscription{appid=_AppId, userid=UserId, regid=_RegId} = Subscription, RetryAfter, Attempts) ->
     Json = jsx:encode(#{<<"userId">> => UserId}),
-    try httpc:request(post, {?BASEURL, [], "application/json", Json}, [], []) of
-        {ok, {{_, 200, _}, _Headers, _Body}} ->
-            error_logger:info_msg("Subscription successfully notified~n", []);
-        {ok, {{_, _, _}, _, _}} ->
-	    error_logger:error_msg("Error in request.~n", []),
-            do_backoff(Subscription, RetryAfter, Attempts);
+    case do_post(Json) of
         {error, Reason} ->
-	    error_logger:error_msg("Error in request. Reason was: ~p~n", [Reason]),
+            error_logger:error_msg("Subscription not notified. Reason was: ~p~n", [Reason]),
             do_backoff(Subscription, RetryAfter, Attempts);
-        OtherError ->
-	    error_logger:error_msg("Error in request. Reason was: ~p~n", [OtherError]),
-            do_backoff(Subscription, RetryAfter, Attempts)
+        _ ->
+            error_logger:info_msg("Subscription successfully notified~n", []),
+            ok
+    end.
+
+do_post(Request) ->
+    try httpc:request(post, {?BASEURL, [], "application/json", Request}, [], []) of
+        {ok, {{_, 200, _}, _Headers, _Body}} ->
+            ok;
+        {ok, {{_, _, _}, _, _}} ->
+            {error, bad_status};
+        {error, Reason} ->
+            {error, Reason};
+        Error ->
+            {error, Error}
     catch
         Exception ->
-	    error_logger:error_msg("Error in request. Exception ~p~n", [Exception]),
-            do_backoff(Subscription, RetryAfter, Attempts)
+	    {error, Exception}
     end.
 
 do_backoff(Subscription, RetryAfter, Attempts) ->
