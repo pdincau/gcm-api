@@ -16,8 +16,7 @@ handle(Req, State) ->
 handle_request(<<"POST">>, true, Req) ->
     {ok, [{Payload, true}], Req2} = cowboy_req:body_qs(Req),
     error_logger:info_msg("Received notification: ~p~n", [Payload]),
-    Update = jsx:decode(Payload),
-    process(Update),
+    process(jsx:decode(Payload)),
     cowboy_req:reply(201, [], <<"">>, Req2);
 
 handle_request(<<"POST">>, false, Req) ->
