@@ -14,7 +14,6 @@ process(_, _, ?ATTEMPTS_LIMIT) ->
     ok;
 
 process(Subscription, RetryAfter, Attempts) ->
-    error_logger:info_msg("Notify external application of subscription~n", []),
     #subscription{appid=_AppId, userid=UserId, regid=_RegId} = Subscription,
     Json = jsx:encode(#{<<"userId">> => UserId}),
     try httpc:request(post, {?BASEURL, [], "application/json", Json}, [], []) of
