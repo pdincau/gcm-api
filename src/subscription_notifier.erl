@@ -15,7 +15,7 @@ process(_, _, ?ATTEMPTS_LIMIT) ->
 
 process(Subscription, RetryAfter, Attempts) ->
     #subscription{appid=_AppId, userid=UserId, regid=_RegId} = Subscription,
-    Json = jsx:encode(#{<<"userId">> => UserId}),
+    Json = jsx:encode(#{<<"username">> => UserId}),
     case do_post(Json) of
         {error, Reason} ->
             error_logger:error_msg("Subscription not notified. Reason was: ~p~n", [Reason]),
@@ -27,7 +27,7 @@ process(Subscription, RetryAfter, Attempts) ->
 
 do_post(Request) ->
     try httpc:request(post, {?BASEURL, [], "application/json", Request}, [], []) of
-        {ok, {{_, 200, _}, _Headers, _Body}} ->
+        {ok, {{_, 201, _}, _Headers, _Body}} ->
             ok;
         {ok, {{_, _, _}, _, _}} ->
             {error, bad_status};
