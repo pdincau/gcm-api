@@ -14,13 +14,22 @@ handle(Req, State) ->
     {ok, Req3, State}.
 
 handle_request(<<"POST">>, true, Req) ->
-    cowboy_req:reply(201, [], <<"">>, Req);
+    {ok, [{Payload, true}], Req2} = cowboy_req:body_qs(Req),
+    error_logger:info_msg("Received notification: ~p~n", [Payload]),
+    Update = jsx:decode(Payload),
+    process(Update),
+    error_logger:info_msg("Received update: ~p~n", [Update]),
+    cowboy_req:reply(201, [], <<"">>, Req2);
 
 handle_request(<<"POST">>, false, Req) ->
-    cowboy_req:reply(400, [], <<"Missing body in request.">>, Req);
+    cowboy_req:reply(400, [], <<"{\"error\":\"missing body\"}">>, Req);
 
 handle_request(_, _, Req) ->
     cowboy_req:reply(405, Req).
 
 terminate(_Reason, _Req, _State) ->
     ok.
+
+process(Update) ->
+    Fun = fun([{UserId, [{Key, Value}]}]) -> io:format("~p ~p ~p ~n", [UserId, Key, Value]) end,
+    lists:map(Fun, Update).
