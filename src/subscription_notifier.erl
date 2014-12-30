@@ -14,7 +14,7 @@ process(_, _, ?ATTEMPTS_LIMIT) ->
     ok;
 
 process(Subscription, RetryAfter, Attempts) ->
-    #subscription{appid=_AppId, userid=UserId, regid=_RegId} = Subscription,
+    #subscription{userid=UserId, regid=_RegId} = Subscription,
     Json = jsx:encode(#{<<"username">> => UserId}),
     case do_post(Json) of
         {error, Reason} ->

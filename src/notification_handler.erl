@@ -18,7 +18,7 @@ handle(Req, State) ->
 handle_request(<<"POST">>, true, Req) ->
     {ok, [{Payload, true}], Req2} = cowboy_req:body_qs(Req),
     {AppName, Req3} = cowboy_req:binding(app_name, Req2),
-    process(binary_to_existing_atom(AppName, utf8), jsx:decode(Payload)),
+    process(AppName, jsx:decode(Payload)),
     cowboy_req:reply(201, [], <<"">>, Req3);
 
 handle_request(<<"POST">>, false, Req) ->
@@ -35,10 +35,11 @@ process(AppName, Update) ->
     lists:map(fun(Notification) -> send(AppName, Notification) end, Update).
 
 send(AppName, [{UserId, [{Key, Value}]}]) ->
-    case subscriptions:find(UserId) of
+    case subscriptions:find(AppName, UserId) of
         {error, _} ->
             error_logger:error_msg("UserId: ~p not found.~n", [UserId]);
         {ok, Subscription} ->
+            GCMAppName = binary_to_existing_atom(AppName, utf8),
             Message = [{<<"data">>, [{Key, Value}]}],
-            gcm:push(AppName, [Subscription#subscription.regid], Message)
+            gcm:push(GCMAppName, [Subscription#subscription.regid], Message)
     end.

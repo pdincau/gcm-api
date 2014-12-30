@@ -4,7 +4,7 @@
 -export([handle/2]).
 -export([terminate/3]).
 
--define(FIELDS, [<<"appid">>, <<"userid">>, <<"regid">>]).
+-define(FIELDS, [<<"userid">>, <<"regid">>]).
 
 -include("utils.hrl").
 
@@ -35,9 +35,10 @@ handle_request(_, _, Req) ->
 
 reply(PostVals, Req) ->
     Subscription = subscription_from(PostVals),
-    {ok, subscribed} = subscriptions:add(Subscription),
+    {AppName, Req2} = cowboy_req:binding(app_name, Req),
+    {ok, subscribed} = subscriptions:add(AppName, Subscription),
     spawn(fun() -> subscription_notifier:process(Subscription) end),
-    cowboy_req:reply(201, [], <<"">>, Req).
+    cowboy_req:reply(201, [], <<"">>, Req2).
 
 terminate(_Reason, _Req, _State) ->
     ok.
@@ -57,7 +58,6 @@ validate_presence([Key|Keys], Fields, Errors) ->
     end.
 
 subscription_from(PostVals) ->
-    AppId = proplists:get_value(<<"appid">>, PostVals),
     UserId = proplists:get_value(<<"userid">>, PostVals),
     RegId = proplists:get_value(<<"regid">>, PostVals),
-    #subscription{appid=AppId, userid=UserId, regid=RegId}.
+    #subscription{userid=UserId, regid=RegId}.

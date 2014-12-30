@@ -2,42 +2,46 @@
 
 -behaviour(gen_server).
 
--export([start_link/0]).
+-export([start_link/1]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([add/1, find/1]).
+-export([add/2, find/2]).
 
--define(SERVER, ?MODULE).
--define(TABLE, ?MODULE).
-
--record(state, {}).
+-record(state, {tid}).
 
 -include("utils.hrl").
 
-add(#subscription{appid=_AppId, userid=_UserId, regid=_RegId} = Subscription) ->
+add(AppName, #subscription{userid=_UserId, regid=_RegId} = Subscription) ->
     error_logger:info_msg("Adding subscription~n", []),
-    gen_server:call(?SERVER, {add, Subscription}).
+    Pid = pid_for(AppName),
+    gen_server:call(Pid, {add, Subscription}).
 
-find(UserId) ->
-    case ets:lookup(subscriptions, UserId) of
-        [Subscription] ->
-            {ok, Subscription};
-        [] ->
-            {error, no_subscription}
-    end.
+find(AppName, UserId) ->
+    error_logger:info_msg("Recovering subscription for userid: ~p~n", [UserId]),
+    Pid = pid_for(AppName),
+    gen_server:call(Pid, {find, UserId}).
 
-start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+start_link(AppName) ->
+    gen_server:start_link(?MODULE, [AppName], []).
 
-init([]) ->
-    ets:new(?TABLE, [set, {keypos, #subscription.userid}, named_table]),
-    {ok, #state{}}.
+init([AppName]) ->
+    gproc:reg({n, l, {?MODULE, AppName}}),
+    Tid = ets:new(?MODULE, [set, {keypos, #subscription.userid}]),
+    {ok, #state{tid=Tid}}.
 
-handle_call({add, Subscription}, _From, State) ->
-    ets:insert(?TABLE, Subscription),
+handle_call({add, Subscription}, _From, #state{tid=Tid} = State) ->
+    ets:insert(Tid, Subscription),
     {reply, {ok, subscribed}, State};
+
+handle_call({find, UserId}, _From, #state{tid=Tid} = State) ->
+    case ets:lookup(Tid, UserId) of
+        [Subscription] ->
+            {reply, {ok, Subscription}, State};
+        [] ->
+            {reply, {error, no_subscription}, State}
+    end;
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
@@ -54,3 +58,6 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+pid_for(AppName) ->
+    gproc:lookup_pid({n, l, {?MODULE, AppName}}).

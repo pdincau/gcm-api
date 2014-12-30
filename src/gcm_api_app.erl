@@ -7,6 +7,7 @@
 
 start(_StartType, _StartArgs) ->
     start_cowboy(),
+    start_gcm_client(),
     gcm_api_sup:start_link().
 
 stop(_State) ->
@@ -20,5 +21,8 @@ start_cowboy() ->
     {ok, _} = cowboy:start_http(http, 100, TransOpts, ProtoOpts).
 
 routes() ->
-    [{'_', [{"/subscriptions", subscription_handler, []}
+    [{'_', [{"/:app_name/subscriptions", subscription_handler, []}
            ,{"/:app_name/notifications", notification_handler, []}]}].
+
+start_gcm_client() ->
+    gcm:start(appname, "APIKEY").

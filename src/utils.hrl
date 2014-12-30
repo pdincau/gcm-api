@@ -1,1 +1,1 @@
--record(subscription, {appid, userid, regid}).
+-record(subscription, {userid, regid}).
