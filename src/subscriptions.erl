@@ -14,7 +14,7 @@
 -include("utils.hrl").
 
 add(AppName, #subscription{userid=_UserId, regid=_RegId} = Subscription) ->
-    error_logger:info_msg("Adding subscription~n", []),
+    error_logger:info_msg("Adding subscription: ~p~n", [Subscription]),
     Pid = pid_for(AppName),
     gen_server:call(Pid, {add, Subscription}).
 
