@@ -27,9 +27,8 @@ start_link(AppName) ->
     gen_server:start_link(?MODULE, [AppName], []).
 
 init([AppName]) ->
-    gproc:reg({n, l, {?MODULE, AppName}}),
-    Tid = ets:new(?MODULE, [set, {keypos, #subscription.userid}]),
-    {ok, #state{tid=Tid}}.
+    gen_server:cast(self(), {setup, AppName}),
+    {ok, #state{}}.
 
 handle_call({add, Subscription}, _From, #state{tid=Tid} = State) ->
     ets:insert(Tid, Subscription),
@@ -46,6 +45,11 @@ handle_call({find, UserId}, _From, #state{tid=Tid} = State) ->
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
+
+handle_cast({setup, AppName}, _State) ->
+    gproc:reg({n, l, {?MODULE, AppName}}),
+    Tid = ets:new(?MODULE, [set, {keypos, #subscription.userid}]),
+    {noreply, #state{tid=Tid}};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
