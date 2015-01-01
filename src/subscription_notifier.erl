@@ -19,7 +19,8 @@ process(Subscription, RetryAfter, Attempts) ->
     case do_post(Json) of
         {error, Reason} ->
             error_logger:error_msg("Subscription not notified. Reason was: ~p~n", [Reason]),
-            do_backoff(Subscription, RetryAfter, Attempts);
+            do_backoff(Subscription, RetryAfter, Attempts),
+            ok;
         _ ->
             error_logger:info_msg("Subscription successfully notified~n", [])
     end.
@@ -40,5 +41,4 @@ do_post(Request) ->
     end.
 
 do_backoff(Subscription, RetryAfter, Attempts) ->
-    timer:apply_after(RetryAfter * 2, ?MODULE, process, [Subscription, RetryAfter * 2, Attempts + 1]),
-    ok.
+    timer:apply_after(RetryAfter * 2, ?MODULE, process, [Subscription, RetryAfter * 2, Attempts + 1]).
