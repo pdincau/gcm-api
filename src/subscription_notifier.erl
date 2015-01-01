@@ -21,8 +21,7 @@ process(Subscription, RetryAfter, Attempts) ->
             error_logger:error_msg("Subscription not notified. Reason was: ~p~n", [Reason]),
             do_backoff(Subscription, RetryAfter, Attempts);
         _ ->
-            error_logger:info_msg("Subscription successfully notified~n", []),
-            ok
+            error_logger:info_msg("Subscription successfully notified~n", [])
     end.
 
 do_post(Request) ->
