@@ -1,5 +1,5 @@
 -module(subscription_notifier).
--export([process/1, process/3]).
+-export([process/2, process/4]).
 
 -define(BASEURL, "http://yourcallback.com").
 -define(ATTEMPTS_LIMIT, 5).
@@ -7,13 +7,13 @@
 
 -include("utils.hrl").
 
-process(Subscription) ->
-    process(Subscription, ?RETRY_AFTER, 0).
+process(AppName, Subscription) ->
+    process(AppName, Subscription, ?RETRY_AFTER, 0).
 
-process(_, _, ?ATTEMPTS_LIMIT) ->
+process(_, _, _, ?ATTEMPTS_LIMIT) ->
     ok;
 
-process(Subscription, RetryAfter, Attempts) ->
+process(_AppName, Subscription, RetryAfter, Attempts) ->
     #subscription{userid=UserId, regid=_RegId} = Subscription,
     Json = jsx:encode(#{<<"username">> => UserId}),
     case do_post(Json) of
