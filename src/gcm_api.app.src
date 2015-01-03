@@ -9,6 +9,7 @@
    ,cowboy
    ,gproc
    ,ssl
+   ,gcm
    ,inets
    ]}
  ,{env,[]}
