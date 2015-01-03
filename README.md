@@ -6,4 +6,4 @@ API for gcm-erlang
 Build
 -----
 
-    $ rebar3 compile
+    $ ./rebar3 compile
