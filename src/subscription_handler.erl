@@ -22,13 +22,13 @@ handle_request(<<"POST">>, true, Req) ->
     case validate_presence(?FIELDS, PostVals) of
         [] ->
             reply(PostVals, Req2);
-        _Errors ->
-            %%TODO: improve error message with error messages
-            cowboy_req:reply(400, [], <<"Missing fields in body.">>, Req2)
+        Errors ->
+            Pre = <<"{\"errors\":[">>, JsonErrors = jsx:encode(Errors), Post = <<"]}">>,
+            cowboy_req:reply(400, [], <<Pre/binary, JsonErrors/binary, Post/binary>>, Req2)
     end;
 
 handle_request(<<"POST">>, false, Req) ->
-    cowboy_req:reply(400, [], <<"Missing body in request.">>, Req);
+    cowboy_req:reply(400, [], <<"{\"error\":\"missing body\"}">>, Req);
 
 handle_request(_, _, Req) ->
     cowboy_req:reply(405, Req).
