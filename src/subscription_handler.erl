@@ -51,6 +51,8 @@ validate_presence([], _, Errors) ->
 validate_presence([Key|Keys], Fields, Errors) ->
     case proplists:get_value(Key, Fields) of
         undefined ->
+            validate_presence(Keys, Fields, [{Key, <<"missing">>}|Errors]);
+        <<>> ->
             validate_presence(Keys, Fields, [{Key, <<"can't be blank">>}|Errors]);
         _ ->
             validate_presence(Keys, Fields, Errors)
