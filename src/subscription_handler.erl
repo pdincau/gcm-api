@@ -23,8 +23,7 @@ handle_request(<<"POST">>, true, Req) ->
         [] ->
             reply(PostVals, Req2);
         Errors ->
-            Pre = <<"{\"errors\":[">>, JsonErrors = jsx:encode(Errors), Post = <<"]}">>,
-            cowboy_req:reply(400, [], <<Pre/binary, JsonErrors/binary, Post/binary>>, Req2)
+            cowboy_req:reply(400, [], body_for(Errors), Req2)
     end;
 
 handle_request(<<"POST">>, false, Req) ->
@@ -61,3 +60,7 @@ subscription_from(PostVals) ->
     UserId = proplists:get_value(<<"userid">>, PostVals),
     RegId = proplists:get_value(<<"regid">>, PostVals),
     #subscription{userid=UserId, regid=RegId}.
+
+body_for(Errors) ->
+    Pre = <<"{\"errors\":[">>, JsonErrors = jsx:encode(Errors), Post = <<"]}">>,
+    <<Pre/binary, JsonErrors/binary, Post/binary>>.
