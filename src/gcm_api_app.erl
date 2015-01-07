@@ -22,7 +22,8 @@ start_cowboy() ->
 
 routes() ->
     [{'_', [{"/:app_name/subscriptions", subscription_handler, []}
-           ,{"/:app_name/notifications", notification_handler, []}]}].
+           ,{"/:app_name/notifications", notification_handler, []}
+           ,{"/applications/", application_handler, []}]}].
 
 start_gcm_client() ->
     gcm:start(appname, "APIKEY").
