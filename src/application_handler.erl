@@ -4,8 +4,6 @@
 -export([handle/2]).
 -export([terminate/3]).
 
--record(application, {name}).
-
 -define(FIELDS, [<<"name">>]).
 
 init(_Transport, Req, []) ->
@@ -18,9 +16,16 @@ handle(Req, State) ->
     {ok, Req3, State}.
 
 handle_request(<<"POST">>, true, Req) ->
-    {ok, Body, Req2} = cowboy_req:body_qs(Req),
-    _Application = application_from(Body),
-    cowboy_req:reply(201, [], <<"">>, Req2);
+    {ok, [{Payload, true}], Req2} = cowboy_req:body_qs(Req),
+    error_logger:info_msg("Received request with body ~p~n", [Payload]),
+    Application = application_from(Payload),
+    case errors_in(Application) of
+        [] ->
+            %%TODO: do something cool with Application ;)
+            cowboy_req:reply(201, [], <<"">>, Req2);
+        Errors ->
+            cowboy_req:reply(400, [], body_for(Errors), Req2)
+    end;
 
 handle_request(<<"POST">>, false, Req) ->
     cowboy_req:reply(400, [], <<"{\"error\":\"missing body\"}">>, Req);
@@ -31,7 +36,25 @@ handle_request(_, _, Req) ->
 terminate(_Reason, _Req, _State) ->
     ok.
 
-application_from(_Body) ->
-    ok.
-    %%UserId = proplists:get_value(<<"userid">>, PostVals),
-    %%#application{appname=AppName}.
+errors_in(Application) ->
+    errors_in(?FIELDS, Application, []).
+
+errors_in([], _, Errors) ->
+    Errors;
+
+errors_in([Key|Keys], Application, Errors) ->
+    case maps:find(Key, Application) of
+        error ->
+            errors_in(Keys, Application, [{Key, <<"missing">>}|Errors]);
+        {ok, <<>>} ->
+            errors_in(Keys, Application, [{Key, <<"can't be blank">>}|Errors]);
+        _ ->
+            errors_in(Keys, Application, Errors)
+    end.
+
+application_from(Payload) ->
+    jsx:decode(Payload, [return_maps]).
+
+body_for(Errors) ->
+    Pre = <<"{\"errors\":[">>, JsonErrors = jsx:encode(Errors), Post = <<"]}">>,
+    <<Pre/binary, JsonErrors/binary, Post/binary>>.
