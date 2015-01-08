@@ -4,6 +4,8 @@
 -export([handle/2]).
 -export([terminate/3]).
 
+-record(application, {appname}).
+
 -define(FIELDS, [<<"appname">>]).
 
 init(_Transport, Req, []) ->
