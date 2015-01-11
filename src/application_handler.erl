@@ -1,4 +1,4 @@
--module(application_handler).
+ -module(application_handler).
 
 -export([init/3]).
 -export([handle/2]).
@@ -21,7 +21,7 @@ handle_request(<<"POST">>, true, Req) ->
     Application = application_from(Payload),
     case errors_in(Application) of
         [] ->
-            %%TODO: do something cool with Application ;)
+            ok = applications:add(Appication),
             cowboy_req:reply(201, [], <<"">>, Req2);
         Errors ->
             cowboy_req:reply(400, [], body_for(Errors), Req2)
