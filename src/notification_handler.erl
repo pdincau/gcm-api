@@ -18,6 +18,7 @@ handle(Req, State) ->
 handle_request(<<"POST">>, true, Req) ->
     {ok, [{Payload, true}], Req2} = cowboy_req:body_qs(Req),
     {AppName, Req3} = cowboy_req:binding(app_name, Req2),
+    Notification = notification_from(Payload),
     process(AppName, jsx:decode(Payload)),
     cowboy_req:reply(201, [], <<"">>, Req3);
 
@@ -43,3 +44,6 @@ send(AppName, [{UserId, [{Key, Value}]}]) ->
             Message = [{<<"data">>, [{Key, Value}]}],
             gcm:push(GCMAppName, [Subscription#subscription.regid], Message)
     end.
+
+notification_from(Payload) ->
+    jsx:decode(Payload, [return_maps]).
