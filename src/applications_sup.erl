@@ -1,4 +1,4 @@
--module(gcm_api_sup).
+-module(applications_sup).
 
 -behaviour(supervisor).
 
@@ -8,14 +8,11 @@
 %% Supervisor callbacks
 -export([init/1]).
 
--define(SERVER, ?MODULE).
-
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    Procs = [?CHILD(subscriptions_sup, supervisor), ?CHILD(applications_sup, supervisor)],
+    Procs = [?CHILD(applications, worker)],
     {ok, {{one_for_one, 0, 1}, Procs}}.
-
