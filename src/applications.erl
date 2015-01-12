@@ -25,6 +25,7 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({add, Application}, _From, #state{connection=Connection} = State) ->
+    %% following line returns: {ok, return_value()} | {error, Reason::binary() | no_connection}.
     eredis:q(Connection, ["SET", <<"a_key">>, jsx:encode(Application)]),
     Reply = ok,
     {reply, Reply, State};
