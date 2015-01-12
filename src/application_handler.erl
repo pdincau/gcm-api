@@ -21,7 +21,7 @@ handle_request(<<"POST">>, true, Req) ->
     Application = application_from(Payload),
     case errors_in(Application) of
         [] ->
-            ok = applications:add(Appication),
+            ok = applications:add(Application),
             cowboy_req:reply(201, [], <<"">>, Req2);
         Errors ->
             cowboy_req:reply(400, [], body_for(Errors), Req2)
