@@ -24,7 +24,8 @@ init([]) ->
     gen_server:cast(self(), setup),
     {ok, #state{}}.
 
-handle_call({add, _Application}, _From, State) ->
+handle_call({add, Application}, _From, #state{connection=Connection} = State) ->
+    eredis:q(Connection, ["SET", <<"a_key">>, jsx:encode(Application)]),
     Reply = ok,
     {reply, Reply, State};
 
