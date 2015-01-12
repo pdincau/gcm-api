@@ -11,7 +11,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {}).
+-record(state, {connection}).
 
 add(Application) ->
     error_logger:info_msg("Adding applicaton: ~p~n", [Application]),
@@ -21,6 +21,7 @@ start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
+    gen_server:cast(self(), setup),
     {ok, #state{}}.
 
 handle_call({add, _Application}, _From, State) ->
@@ -30,6 +31,11 @@ handle_call({add, _Application}, _From, State) ->
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
+
+handle_cast(setup, State) ->
+    {ok, Connection} = eredis:start_link(),
+    NewState = State#state{connection=Connection},
+    {noreply, NewState};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
