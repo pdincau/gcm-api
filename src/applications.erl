@@ -21,11 +21,10 @@ start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 init([]) ->
-    gen_server:cast(self(), setup),
+    self() ! setup,
     {ok, #state{}}.
 
 handle_call({add, Application}, _From, #state{connection=Connection} = State) ->
-    %% following line returns: {ok, return_value()} | {error, Reason::binary() | no_connection}.
     eredis:q(Connection, ["SET", <<"a_key">>, jsx:encode(Application)]),
     Reply = ok,
     {reply, Reply, State};
@@ -34,13 +33,13 @@ handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
 
-handle_cast(setup, State) ->
+handle_cast(_Msg, State) ->
+    {noreply, State}.
+
+handle_info(setup, State) ->
     {ok, Connection} = eredis:start_link(),
     NewState = State#state{connection=Connection},
     {noreply, NewState};
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
 
 handle_info(_Info, State) ->
     {noreply, State}.
