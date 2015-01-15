@@ -7,15 +7,17 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([add/1]).
+-export([add/1, get/1]).
 
 -define(SERVER, ?MODULE).
 
 -record(state, {connection}).
 
 add(Application) ->
-    error_logger:info_msg("Adding applicaton: ~p~n", [Application]),
     gen_server:call(?SERVER, {add, Application}).
+
+get(AppName) ->
+    gen_server:call(?SERVER, {get, AppName}).
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -25,8 +27,19 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({add, Application}, _From, #state{connection=Connection} = State) ->
-    eredis:q(Connection, ["SET", <<"a_key">>, jsx:encode(Application)]),
-    Reply = ok,
+    AppName = maps:get(<<"name">>, Application),
+    Reply = eredis:q(Connection, ["SET", AppName, jsx:encode(Application)]),
+    error_logger:info_msg("Add application ~p. Result ~p~n", [Application, Reply]),
+    {reply, Reply, State};
+
+handle_call({get, AppName}, _From, #state{connection=Connection} = State) ->
+    Reply = case eredis:q(Connection, ["GET", AppName]) of
+        {error, no_connection} ->
+            {error, no_connection};
+        {ok, Json} ->
+            {ok, jsx:decode(Json, [return_maps])}
+    end,
+    error_logger:info_msg("Get appname ~p. Result ~p~n", [AppName, Reply]),
     {reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
