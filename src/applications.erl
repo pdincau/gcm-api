@@ -7,7 +7,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([add/1, get/1, delete/1, update/1]).
+-export([add/1, get/1, delete/1, update/1, keys/0]).
 
 -define(SERVER, ?MODULE).
 
@@ -24,6 +24,9 @@ delete(AppName) ->
 
 update(Application) ->
     add(Application).
+
+keys() ->
+    gen_server:call(?SERVER, keys).
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -56,6 +59,16 @@ handle_call({delete, AppName}, _From, #state{connection=Connection} = State) ->
             {ok, Result}
     end,
     error_logger:info_msg("Remove application ~p. Result ~p~n", [AppName, Reply]),
+    {reply, Reply, State};
+
+handle_call(keys, _From, #state{connection=Connection} = State) ->
+    Reply = case eredis:q(Connection, ["KEYS", "*"]) of
+        {error, no_connection} ->
+            {error, no_connection};
+        {ok, Result} ->
+            {ok, Result}
+    end,
+    error_logger:info_msg("Recovering all applications names. Result ~p~n", [Reply]),
     {reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
