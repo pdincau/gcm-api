@@ -35,14 +35,14 @@ init([]) ->
     self() ! setup,
     {ok, #state{}}.
 
-handle_call({add, Application}, _From, #state{connection=Connection} = State) ->
+handle_call({add, Application}, _From, #state{connection=C} = State) ->
     AppName = maps:get(<<"name">>, Application),
-    Reply = eredis:q(Connection, ["SET", AppName, jsx:encode(Application)]),
+    Reply = eredis:q(C, ["SET", AppName, jsx:encode(Application)]),
     error_logger:info_msg("Add application ~p. Result ~p~n", [Application, Reply]),
     {reply, Reply, State};
 
-handle_call({get, AppName}, _From, #state{connection=Connection} = State) ->
-    Reply = case eredis:q(Connection, ["GET", AppName]) of
+handle_call({get, AppName}, _From, #state{connection=C} = State) ->
+    Reply = case eredis:q(C, ["GET", AppName]) of
         {error, no_connection} ->
             {error, no_connection};
         {ok, Json} ->
@@ -51,8 +51,8 @@ handle_call({get, AppName}, _From, #state{connection=Connection} = State) ->
     error_logger:info_msg("Get appname ~p. Result ~p~n", [AppName, Reply]),
     {reply, Reply, State};
 
-handle_call({delete, AppName}, _From, #state{connection=Connection} = State) ->
-    Reply = case eredis:q(Connection, ["DEL", AppName]) of
+handle_call({delete, AppName}, _From, #state{connection=C} = State) ->
+    Reply = case eredis:q(C, ["DEL", AppName]) of
         {error, no_connection} ->
             {error, no_connection};
         {ok, Result} ->
@@ -61,8 +61,8 @@ handle_call({delete, AppName}, _From, #state{connection=Connection} = State) ->
     error_logger:info_msg("Remove application ~p. Result ~p~n", [AppName, Reply]),
     {reply, Reply, State};
 
-handle_call(keys, _From, #state{connection=Connection} = State) ->
-    Reply = case eredis:q(Connection, ["KEYS", "*"]) of
+handle_call(keys, _From, #state{connection=C} = State) ->
+    Reply = case eredis:q(C, ["KEYS", "*"]) of
         {error, no_connection} ->
             {error, no_connection};
         {ok, Result} ->
@@ -79,8 +79,8 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 handle_info(setup, State) ->
-    {ok, Connection} = eredis:start_link(),
-    NewState = State#state{connection=Connection},
+    {ok, C} = eredis:start_link(),
+    NewState = State#state{connection=C},
     {noreply, NewState};
 
 handle_info(_Info, State) ->
