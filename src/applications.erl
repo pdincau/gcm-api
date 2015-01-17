@@ -55,7 +55,7 @@ handle_call({delete, AppName}, _From, #state{connection=Connection} = State) ->
         {ok, Result} ->
             {ok, Result}
     end,
-    error_logger:info_msg("Remove application ~p. Result ~p~n", [Application, Reply]),
+    error_logger:info_msg("Remove application ~p. Result ~p~n", [AppName, Reply]),
     {reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
