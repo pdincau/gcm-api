@@ -7,7 +7,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([add/1, get/1, delete/1]).
+-export([add/1, get/1, delete/1, update/1]).
 
 -define(SERVER, ?MODULE).
 
@@ -21,6 +21,9 @@ get(AppName) ->
 
 delete(AppName) ->
     gen_server:call(?SERVER, {delete, AppName}).
+
+update(Application) ->
+    add(Application).
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
