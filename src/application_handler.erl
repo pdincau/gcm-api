@@ -4,7 +4,7 @@
 -export([handle/2]).
 -export([terminate/3]).
 
--define(FIELDS, [<<"name">>, <<"callback_url">>]).
+-define(FIELDS, [<<"name">>, <<"apikey">>, <<"callback_url">>]).
 
 init(_Transport, Req, []) ->
     {ok, Req, undefined}.
