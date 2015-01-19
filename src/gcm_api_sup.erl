@@ -16,6 +16,6 @@ start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 init([]) ->
-    Procs = [?CHILD(subscriptions_sup, supervisor), ?CHILD(applications_sup, supervisor)],
+    Procs = [?CHILD(applications_sup, supervisor), ?CHILD(subscriptions_sup, supervisor)],
     {ok, {{one_for_one, 0, 1}, Procs}}.
 
