@@ -22,6 +22,8 @@ handle_request(<<"POST">>, true, Req) ->
     case errors_in(Application) of
         [] ->
             {ok, <<"OK">>} = applications:add(Application),
+            AppName = maps:get(<<"name">>, Application),
+            subscriptions_sup:start_child(AppName),
             cowboy_req:reply(201, [], <<"">>, Req2);
         Errors ->
             cowboy_req:reply(400, [], body_for(Errors), Req2)
