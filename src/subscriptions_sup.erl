@@ -23,6 +23,6 @@ init([]) ->
     {ok, {{simple_one_for_one, 0, 1}, Procs}}.
 
 start_children() ->
-    AppNames = [<<"appname">>],
-    [start_child(AppName) || AppName <- AppNames],
+    {ok, Applications} = applications:keys(),
+    [start_child(AppName) || AppName <- Applications],
     ok.
