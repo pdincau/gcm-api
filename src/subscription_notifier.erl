@@ -41,4 +41,5 @@ do_post(Request) ->
     end.
 
 do_backoff(Subscription, RetryAfter, Attempts) ->
-    timer:apply_after(RetryAfter * 2, ?MODULE, process, [Subscription, RetryAfter * 2, Attempts + 1]).
+    NewRetryAfter = RetryAfter * 2,
+    timer:apply_after(NewRetryAfter, ?MODULE, process, [Subscription, NewRetryAfter, Attempts + 1]).
