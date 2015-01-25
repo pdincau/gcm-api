@@ -1,7 +1,6 @@
 -module(subscription_notifier).
 -export([process/2, process/4]).
 
--define(BASEURL, "http://yourcallback.com").
 -define(ATTEMPTS_LIMIT, 5).
 -define(RETRY_AFTER, 5000).
 
@@ -13,10 +12,11 @@ process(AppName, Subscription) ->
 process(_, _, _, ?ATTEMPTS_LIMIT) ->
     ok;
 
-process(_AppName, Subscription, RetryAfter, Attempts) ->
+process(AppName, Subscription, RetryAfter, Attempts) ->
+    Application = applications:get(AppName),
     #subscription{userid=UserId, regid=_RegId} = Subscription,
     Json = jsx:encode(#{<<"username">> => UserId}),
-    case do_post(Json) of
+    case do_post(Application, Json) of
         {error, Reason} ->
             error_logger:error_msg("Subscription not notified. Reason was: ~p~n", [Reason]),
             do_backoff(Subscription, RetryAfter, Attempts),
@@ -25,8 +25,9 @@ process(_AppName, Subscription, RetryAfter, Attempts) ->
             error_logger:info_msg("Subscription successfully notified~n", [])
     end.
 
-do_post(Request) ->
-    try httpc:request(post, {?BASEURL, [], "application/json", Request}, [], []) of
+do_post(Application, Request) ->
+    Url = maps:get(<<"callback_url">>, Application),
+    try httpc:request(post, {Url, [], "application/json", Request}, [], []) of
         {ok, {{_, 201, _}, _Headers, _Body}} ->
             ok;
         {ok, {{_, _, _}, _, _}} ->
